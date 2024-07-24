@@ -1,5 +1,10 @@
 package u02
 
+import u02.Modules.Person.{matchcourses, matchcourses_improved}
+import u03.Sequences
+import u03.Sequences.*
+
+
 object Modules extends App :
 
   // An ADT: type + module
@@ -12,8 +17,24 @@ object Modules extends App :
       case Student(n, _) => n
       case Teacher(n, _) => n
 
-  println(Person.name(Person.Student("mario", 2015)))
+    import u03.Sequences.*
+    import Sequence.*
 
+    def matchcourses(l: Sequence[Person]): Sequence[String] = l match
+      case Cons(Person.Teacher(_,course),t) => Cons(course,matchcourses(t))
+      case Cons(Person.Student(_,_),t) => matchcourses(t)
+      case _ => Nil()
+
+    def matchcourses_improved(l: Sequence[Person]): Sequence[String] = flatMap(l)(l=> l match
+      case Teacher(_,course) => Cons(course,Nil())
+      case _ => Nil()
+    )
+
+
+  println(Person.name(Person.Student("mario", 2015)))
+  val l = Sequence.Cons(Person.Student("mario", 2015), Sequence.Cons(Person.Teacher("luca", "PPS"), Sequence.Nil()))
+  println(matchcourses(l)) //Cons(PPS),Nil()
+  println(matchcourses_improved(l)) //Cons(PPS),Nil()
   import Person.*
 
   println(name(Student("mario", 2015)))

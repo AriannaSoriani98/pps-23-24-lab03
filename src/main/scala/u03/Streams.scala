@@ -12,13 +12,14 @@ object Streams extends App :
 
     def empty[A](): Stream[A] = Empty()
 
-    def cons[A](hd: => A, tl: => Stream[A]): Stream[A] =
+    def cons[A](hd: => A, tl: => Stream[A]): Stream[A] =//passaggio by need! prendendo parametri by name
       lazy val head = hd
       lazy val tail = tl
       Cons(() => head, () => tail)
 
+    //conversione da stram a lista per stamparla
     def toList[A](stream: Stream[A]): Sequence[A] = stream match
-      case Cons(h, t) => Sequence.Cons(h(), toList(t()))
+      case Cons(h, t) => Sequence.Cons(h(), toList(t())) //applicazione di to list ricorsiva alla coda
       case _ => Sequence.Nil()
 
     def map[A, B](stream: Stream[A])(f: A => B): Stream[B] = stream match
@@ -43,6 +44,22 @@ object Streams extends App :
       case Cons(head, tail) if pred(head()) => cons(head(), takeWhile(tail())(pred))
       case _ => Empty()
 
+    def fill[A](n:Int)(value:A): Stream[A] = n match
+      case n if n>0 => cons(value,fill(n-1)(value))
+      case _ => Empty()
+
+    def pell(n:Int): Stream[Int] =
+      def computePellNumber(i:Int):Int = i match
+        case 0 => 0
+        case 1 => 1
+        case i if i>1 => 2*computePellNumber(i-1) + computePellNumber(i-2)
+        lazy val str1 = Stream.iterate(0)(_+1)
+        lazy val str2 = Stream.take(str1)(n)
+        Stream.map(str2)(computePellNumber)
+
+
+
+
   end Stream
 
 @main def tryStreams =
@@ -52,7 +69,16 @@ object Streams extends App :
   val str2 = Stream.map(str1)(_ + 1) // {1,2,3,4,..}
   val str3 = Stream.filter(str2)(x => (x < 3 || x > 20)) // {1,2,21,22,..}
   val str4 = Stream.take(str3)(10) // {1,2,21,22,..,28}
+  val str5 = Stream.takeWhile(str1)(_<10)
   println(Stream.toList(str4)) // [1,2,21,22,..,28]
+  println(Stream.toList(str5)) // [1,2,3,...9]
 
   lazy val corec: Stream[Int] = Stream.cons(1, corec) // {1,1,1,..}
   println(Stream.toList(Stream.take(corec)(10))) // [1,1,..,1]
+
+  val str6 = Stream.fill(5)("a") //{a,a,a,a,a}
+  println(Stream.toList(str6))
+
+  val str7 = Stream.pell(5) //0,1,2,5,12
+  println(Stream.toList(str7))
+
